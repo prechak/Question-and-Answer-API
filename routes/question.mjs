@@ -2,6 +2,7 @@ import { Router } from "express";
 import connectionPool from "../utils/db.mjs";
 import validationCreateQuestion from "../middlewares/post.validation.mjs";
 import validationUpdateQuestion from "../middlewares/put.validation.mjs";
+import validationCreateAnswer from "../middlewares/postanswers.validation.mjs";
 
 const questionRouter = Router();
 
@@ -28,6 +29,34 @@ questionRouter.post("/", [validationCreateQuestion], async (req, res) => {
     message: "Created: Question created successfully.",
   });
 });
+
+questionRouter.post(
+  "/:id/answers",
+  [validationCreateAnswer],
+  async (req, res) => {
+    let questionId = req.params.id;
+    let answer = { ...req.body };
+    // console.log(answer);
+
+    try {
+      await connectionPool.query(
+        `insert into answers(question_id, content)
+  values($1, $2)
+  returning *
+  `,
+        [questionId, answer.content]
+      );
+    } catch {
+      return res.status(400).json({
+        message: `Missing or invalid request data`,
+      });
+    }
+
+    return res.status(201).json({
+      message: "Answer created successfully",
+    });
+  }
+);
 
 //ผู้ใช้งานสามารถที่จะดูคำถามทั้งหมดได้
 questionRouter.get("/", async (req, res) => {
@@ -60,7 +89,7 @@ questionRouter.get("/", async (req, res) => {
     );
   });
 
-  return res.status(200).json({
+  return res.status(201).json({
     data: filteredResults,
   });
 });
@@ -91,6 +120,8 @@ questionRouter.get("/:id", async (req, res) => {
     data: result.rows[0],
   });
 });
+
+questionRouter.get("/:id/answers", async (req, res) => {}); // todo next
 
 //ผู้ใช้งานสามารถที่จะแก้ไขหัวข้อ หรือคำอธิบายของคำถามได้
 questionRouter.put("/:id", [validationUpdateQuestion], async (req, res) => {
