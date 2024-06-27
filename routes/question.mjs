@@ -6,6 +6,7 @@ import validationCreateAnswer from "../middlewares/postanswers.validation.mjs";
 
 const questionRouter = Router();
 
+//ผู้ใช้งานสามารถสร้างคำถามได้
 questionRouter.post("/", [validationCreateQuestion], async (req, res) => {
   const newQuestion = {
     ...req.body,
@@ -30,6 +31,7 @@ questionRouter.post("/", [validationCreateQuestion], async (req, res) => {
   });
 });
 
+//ผู้ใช้งานสามารถสร้างคำตอบของคำถามนั้นได้
 questionRouter.post(
   "/:id/answers",
   [validationCreateAnswer],
@@ -121,7 +123,31 @@ questionRouter.get("/:id", async (req, res) => {
   });
 });
 
-questionRouter.get("/:id/answers", async (req, res) => {}); // todo next
+questionRouter.get("/:id/answers", async (req, res) => {
+  const questionId = req.params.id;
+  let result;
+
+  try {
+    result = await connectionPool.query(
+      `select * from answers where question_id = $1`,
+      [questionId]
+    );
+  } catch {
+    return res.status(400).json({
+      message: `Missing or invalid request data`,
+    });
+  }
+  if (!result.rows[0]) {
+    return res.status(404).json({
+      message: `Question not found`,
+    });
+  }
+
+  return res.status(200).json({
+    data: result.rows,
+    message: `Successfully retrieved the answers.`,
+  });
+});
 
 //ผู้ใช้งานสามารถที่จะแก้ไขหัวข้อ หรือคำอธิบายของคำถามได้
 questionRouter.put("/:id", [validationUpdateQuestion], async (req, res) => {
