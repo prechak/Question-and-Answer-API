@@ -84,6 +84,16 @@ app.put("/questions/:id", async (req, res) => {
   });
 });
 
+app.delete("/questions/:id", async (req, res) => {
+  const questionIdFromClient = req.params.id;
+
+  await connectionPool.query(`delete from questions where id = $1`, [
+    questionIdFromClient,
+  ]);
+
+  return res.status(201).json({ message: "Successfully deleted the question" });
+});
+
 app.listen(port, () => {
   console.log(`Server is running at ${port}`);
 });
