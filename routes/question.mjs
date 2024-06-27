@@ -32,6 +32,15 @@ questionRouter.post("/", [validationCreateQuestion], async (req, res) => {
 //ผู้ใช้งานสามารถที่จะดูคำถามทั้งหมดได้
 questionRouter.get("/", async (req, res) => {
   let result;
+  let keywords = req.query.keywords;
+  console.log("Received keywords:", keywords);
+
+  if (keywords === undefined) {
+    return res.status(400).json({
+      message: "Please send keywords parameter in the URL endpoint",
+    });
+  }
+
   try {
     result = await connectionPool.query(`select * from questions`);
   } catch {
@@ -40,8 +49,19 @@ questionRouter.get("/", async (req, res) => {
     });
   }
 
+  const regexKeywords = keywords.split(" ").join("|");
+  const regex = new RegExp(regexKeywords, "ig");
+
+  const filteredResults = result.rows.filter((question) => {
+    return (
+      question.title.match(regex) ||
+      question.description.match(regex) ||
+      (question.category && question.category.match(regex))
+    );
+  });
+
   return res.status(200).json({
-    data: result.rows,
+    data: filteredResults,
   });
 });
 
