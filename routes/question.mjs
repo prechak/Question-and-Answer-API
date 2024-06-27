@@ -60,6 +60,42 @@ questionRouter.post(
   }
 );
 
+//ผู้ใช้งานสามารถกดปุ่มเห็นด้วย หรือไม่เห็นด้วยกับคำถามได้ //not finished
+questionRouter.post("/:id/upvote", async (req, res) => {
+  let questionId = req.params.id;
+  let newVote = { ...req.body };
+  let checkQuestion;
+  let result;
+
+  try {
+    checkQuestion = await connectionPool.query(
+      `select * from question where id = $1`,
+      [questionId]
+    );
+
+    if (!checkQuestion.rows[0]) {
+      return res.status(404).json({
+        message: `Question not found.`,
+      });
+    }
+
+    result = await connectionPool.query(
+      `insert into question_votes (question_id, vote)
+    values($1, $2) returning *`,
+      [questionId, newVote.vote]
+    );
+  } catch {
+    return res.status(400).json({
+      message: `Missing or invalid request data`,
+    });
+  }
+
+  return res.status(200).json({
+    data: result.rows[0],
+    message: `Successfully upvoted the question.`,
+  });
+});
+
 //ผู้ใช้งานสามารถที่จะดูคำถามทั้งหมดได้
 questionRouter.get("/", async (req, res) => {
   let result;
