@@ -47,6 +47,7 @@ app.get("/questions", async (req, res) => {
   });
 });
 
+//ผู้ใช้งานสามารถที่จะดูคำถามแต่ละอันได้ ด้วย Id ของคำถามได้
 app.get("/questions/:id", async (req, res) => {
   const questionIdFromClient = req.params.id;
   let result = await connectionPool.query(
@@ -55,6 +56,31 @@ app.get("/questions/:id", async (req, res) => {
   );
   return res.status(201).json({
     data: result.rows[0],
+  });
+});
+
+//ผู้ใช้งานสามารถที่จะแก้ไขหัวข้อ หรือคำอธิบายของคำถามได้
+app.put("/questions/:id", async (req, res) => {
+  const questionIdFromClient = req.params.id;
+  const updateQuestion = { ...req.body };
+  await connectionPool.query(
+    `
+    update questions 
+    set title = $2,
+        description = $3,
+        category = $4
+    where id = $1
+    returning *
+    `,
+    [
+      questionIdFromClient,
+      updateQuestion.title,
+      updateQuestion.description,
+      updateQuestion.category,
+    ]
+  );
+  return res.status(201).json({
+    message: "Successfully updated the question.",
   });
 });
 
