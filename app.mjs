@@ -47,6 +47,17 @@ app.get("/questions", async (req, res) => {
   });
 });
 
+app.get("/questions/:id", async (req, res) => {
+  const questionIdFromClient = req.params.id;
+  let result = await connectionPool.query(
+    `select * from questions where id = $1`,
+    [questionIdFromClient]
+  );
+  return res.status(201).json({
+    data: result.rows[0],
+  });
+});
+
 app.listen(port, () => {
   console.log(`Server is running at ${port}`);
 });
