@@ -1,11 +1,14 @@
 import express from "express";
 import connectionPool from "./utils/db.mjs";
+import validationCreateQuestion from "./middlewares/post.validation.mjs";
+import validationUpdateQuestion from "./middlewares/put.validation.mjs";
 
 const app = express();
 const port = 7777;
 
 app.use(express.json());
 
+/*
 app.get("/test", (req, res) => {
   return res.json("Server API is working 🚀");
 });
@@ -18,20 +21,27 @@ app.get("/dbtest", async (req, res) => {
     message: "Database is connected 🐘",
   });
 });
+*/
 
 //ผู้ใช้งานสามารถสร้างคำถามได้
-app.post("/questions", async (req, res) => {
+app.post("/questions", [validationCreateQuestion], async (req, res) => {
   const newQuestion = {
     ...req.body,
   };
 
-  await connectionPool.query(
-    `
+  try {
+    await connectionPool.query(
+      `
     insert into questions (title, description, category)
     values($1, $2, $3)
     `,
-    [newQuestion.title, newQuestion.description, newQuestion.category]
-  );
+      [newQuestion.title, newQuestion.description, newQuestion.category]
+    );
+  } catch {
+    return res.status(400).json({
+      message: "Missing or invalid request data",
+    });
+  }
 
   return res.status(201).json({
     message: "Created: Question created successfully.",
@@ -40,7 +50,14 @@ app.post("/questions", async (req, res) => {
 
 //ผู้ใช้งานสามารถที่จะดูคำถามทั้งหมดได้
 app.get("/questions", async (req, res) => {
-  let result = await connectionPool.query(`select * from questions`);
+  let result;
+  try {
+    result = await connectionPool.query(`select * from questions`);
+  } catch {
+    return res.status(400).json({
+      message: "Missing or invalid request data",
+    });
+  }
 
   return res.status(200).json({
     data: result.rows,
@@ -50,21 +67,39 @@ app.get("/questions", async (req, res) => {
 //ผู้ใช้งานสามารถที่จะดูคำถามแต่ละอันได้ ด้วย Id ของคำถามได้
 app.get("/questions/:id", async (req, res) => {
   const questionIdFromClient = req.params.id;
-  let result = await connectionPool.query(
-    `select * from questions where id = $1`,
-    [questionIdFromClient]
-  );
+
+  let result;
+  try {
+    result = await connectionPool.query(
+      `select * from questions where id = $1`,
+      [questionIdFromClient]
+    );
+  } catch {
+    return res.status(400).json({
+      message: "Missing or invalid request data",
+    });
+  }
+
+  if (!result.rows[0]) {
+    return res.status(404).json({
+      message: "Question not found",
+    });
+  }
+
   return res.status(201).json({
     data: result.rows[0],
   });
 });
 
 //ผู้ใช้งานสามารถที่จะแก้ไขหัวข้อ หรือคำอธิบายของคำถามได้
-app.put("/questions/:id", async (req, res) => {
+app.put("/questions/:id", [validationUpdateQuestion], async (req, res) => {
   const questionIdFromClient = req.params.id;
   const updateQuestion = { ...req.body };
-  await connectionPool.query(
-    `
+
+  let result;
+  try {
+    result = await connectionPool.query(
+      `
     update questions 
     set title = $2,
         description = $3,
@@ -72,26 +107,53 @@ app.put("/questions/:id", async (req, res) => {
     where id = $1
     returning *
     `,
-    [
-      questionIdFromClient,
-      updateQuestion.title,
-      updateQuestion.description,
-      updateQuestion.category,
-    ]
-  );
+      [
+        questionIdFromClient,
+        updateQuestion.title,
+        updateQuestion.description,
+        updateQuestion.category,
+      ]
+    );
+  } catch {
+    return res.status(400).json({ message: "Missing or invalid request data" });
+  }
+
+  if (!result.rows[0]) {
+    return res.status(404).json({
+      message: "Question not found",
+    });
+  }
+
   return res.status(201).json({
     message: "Successfully updated the question.",
   });
 });
 
+//ผู้ใช้งานสามารถที่จะลบคำถามได้
 app.delete("/questions/:id", async (req, res) => {
   const questionIdFromClient = req.params.id;
+  let result;
 
-  await connectionPool.query(`delete from questions where id = $1`, [
-    questionIdFromClient,
-  ]);
+  try {
+    result = await connectionPool.query(
+      `delete from questions where id = $1 returning *`,
+      [questionIdFromClient]
+    );
+  } catch {
+    return res.status(400).json({
+      message: "Missing or invalid request data",
+    });
+  }
 
-  return res.status(201).json({ message: "Successfully deleted the question" });
+  if (!result.rows[0]) {
+    return res.status(404).json({
+      message: `Question not found (question id: ${questionIdFromClient})`,
+    });
+  }
+
+  return res.status(201).json({
+    message: `Successfully deleted the question`,
+  });
 });
 
 app.listen(port, () => {
