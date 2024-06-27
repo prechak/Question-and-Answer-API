@@ -60,7 +60,7 @@ questionRouter.post(
   }
 );
 
-//ผู้ใช้งานสามารถกดปุ่มเห็นด้วย หรือไม่เห็นด้วยกับคำถามได้ //not finished
+//ผู้ใช้งานสามารถกดปุ่มเห็นด้วย หรือไม่เห็นด้วยกับคำถามได้ - Question Upvote
 questionRouter.post("/:id/upvote", async (req, res) => {
   let questionId = req.params.id;
   let newVote = { ...req.body };
@@ -68,8 +68,13 @@ questionRouter.post("/:id/upvote", async (req, res) => {
   let result;
 
   try {
+    if (!Number(newVote.vote) || newVote.vote !== 1) {
+      return res.status(400).json({
+        message: `Vote must be number and value must be 1`,
+      });
+    }
     checkQuestion = await connectionPool.query(
-      `select * from question where id = $1`,
+      `select * from questions where id = $1`,
       [questionId]
     );
 
@@ -91,7 +96,48 @@ questionRouter.post("/:id/upvote", async (req, res) => {
   }
 
   return res.status(200).json({
-    data: result.rows[0],
+    // data: result.rows[0],
+    message: `Successfully upvoted the question.`,
+  });
+});
+
+//ผู้ใช้งานสามารถกดปุ่มเห็นด้วย หรือไม่เห็นด้วยกับคำถามได้ - Question Downvote
+questionRouter.post("/:id/downvote", async (req, res) => {
+  let questionId = req.params.id;
+  let newVote = { ...req.body };
+  let checkQuestion;
+  let result;
+
+  try {
+    if (!Number(newVote.vote) || newVote.vote !== -1) {
+      return res.status(400).json({
+        message: `Vote must be number and value must be -1`,
+      });
+    }
+    checkQuestion = await connectionPool.query(
+      `select * from questions where id = $1`,
+      [questionId]
+    );
+
+    if (!checkQuestion.rows[0]) {
+      return res.status(404).json({
+        message: `Question not found.`,
+      });
+    }
+
+    result = await connectionPool.query(
+      `insert into question_votes (question_id, vote)
+    values($1, $2) returning *`,
+      [questionId, newVote.vote]
+    );
+  } catch {
+    return res.status(400).json({
+      message: `Missing or invalid request data`,
+    });
+  }
+
+  return res.status(200).json({
+    // data: result.rows[0],
     message: `Successfully upvoted the question.`,
   });
 });
