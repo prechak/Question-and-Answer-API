@@ -210,7 +210,7 @@ questionRouter.delete("/:id", async (req, res) => {
   }
 
   return res.status(201).json({
-    message: `Successfully deleted the question`,
+    message: `Question and its answers deleted successfully.`,
   });
 });
 
