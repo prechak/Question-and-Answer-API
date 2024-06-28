@@ -142,7 +142,7 @@ questionRouter.post("/:id/downvote", async (req, res) => {
   });
 });
 
-//ผู้ใช้งานสามารถที่จะดูคำถามทั้งหมดได้
+//ผู้ใช้งานสามารถที่จะดูคำถามทั้งหมดได้และค้นหาได้
 questionRouter.get("/", async (req, res) => {
   let result;
   let keywords = req.query.keywords;
