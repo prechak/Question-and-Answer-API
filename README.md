@@ -15,8 +15,9 @@ This project is an Express-based REST API for managing questions and answers. Us
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/question-answer-api.git
+    mkdir question-answer-api
     cd question-answer-api
+    git@github.com:techupth/backend-skill-checkpoint-prechak.git
     ```
 
 2. Install dependencies:
