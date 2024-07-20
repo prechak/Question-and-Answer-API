@@ -17,7 +17,7 @@ This project is an Express-based REST API for managing questions and answers. Us
     ```bash
     mkdir question-answer-api
     cd question-answer-api
-    git@github.com:prechak/Question-and-Answer-API.git
+    git clone git@github.com:prechak/Question-and-Answer-API.git
     ```
 
 2. Install dependencies:
