@@ -1,6 +1,7 @@
 # Question and Answer API
 
 This project is an Express-based REST API for managing questions and answers. Users can create, read, update, delete questions and answers, as well as upvote or downvote them.
+![Swagger](asset/img/SwaggerDocument.png)
 
 ## Table of Contents
 
