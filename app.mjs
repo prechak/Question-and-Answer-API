@@ -3,16 +3,25 @@ import express from "express";
 import questionRouter from "./routes/question.mjs";
 import answerRouter from "./routes/answer.mjs";
 
+import swaggerUi from "swagger-ui-express";
+import { loadSwaggerDocument } from "./utils/swagger.mjs";
+
 const app = express();
 const port = 7777;
 
 app.use(express.json());
+// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(loadSwaggerDocument()));
+
+async function setupSwagger() {
+  const swaggerDocument = await loadSwaggerDocument();
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+}
+
+setupSwagger();
+
 app.use("/questions", questionRouter);
 app.use("/answers", answerRouter);
 
-//ไม่ได้เพิ่ม Timestamp เพราะ pgAdmin gen ให้อยู่แล้ว
-
-/*
 app.get("/test", (req, res) => {
   return res.json("Server API is working 🚀");
 });
@@ -25,7 +34,6 @@ app.get("/dbtest", async (req, res) => {
     message: "Database is connected 🐘",
   });
 });
-*/
 
 app.listen(port, () => {
   console.log(`Server is running at ${port}`);

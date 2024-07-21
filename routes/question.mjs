@@ -6,7 +6,6 @@ import validationCreateAnswer from "../middlewares/postanswers.validation.mjs";
 
 const questionRouter = Router();
 
-//ผู้ใช้งานสามารถสร้างคำถามได้
 questionRouter.post("/", [validationCreateQuestion], async (req, res) => {
   const newQuestion = {
     ...req.body,
@@ -31,14 +30,12 @@ questionRouter.post("/", [validationCreateQuestion], async (req, res) => {
   });
 });
 
-//ผู้ใช้งานสามารถสร้างคำตอบของคำถามนั้นได้
 questionRouter.post(
   "/:id/answers",
   [validationCreateAnswer],
   async (req, res) => {
     let questionId = req.params.id;
     let answer = { ...req.body };
-    // console.log(answer);
 
     try {
       await connectionPool.query(
@@ -60,7 +57,6 @@ questionRouter.post(
   }
 );
 
-//ผู้ใช้งานสามารถกดปุ่มเห็นด้วย หรือไม่เห็นด้วยกับคำถามได้ - Question Upvote
 questionRouter.post("/:id/upvote", async (req, res) => {
   let questionId = req.params.id;
   let newVote = { ...req.body };
@@ -101,7 +97,6 @@ questionRouter.post("/:id/upvote", async (req, res) => {
   });
 });
 
-//ผู้ใช้งานสามารถกดปุ่มเห็นด้วย หรือไม่เห็นด้วยกับคำถามได้ - Question Downvote
 questionRouter.post("/:id/downvote", async (req, res) => {
   let questionId = req.params.id;
   let newVote = { ...req.body };
@@ -142,7 +137,6 @@ questionRouter.post("/:id/downvote", async (req, res) => {
   });
 });
 
-//ผู้ใช้งานสามารถที่จะดูคำถามทั้งหมดได้และค้นหาได้
 questionRouter.get("/", async (req, res) => {
   let result;
   let keywords = req.query.keywords;
@@ -178,7 +172,6 @@ questionRouter.get("/", async (req, res) => {
   });
 });
 
-//ผู้ใช้งานสามารถที่จะดูคำถามแต่ละอันได้ ด้วย Id ของคำถามได้
 questionRouter.get("/:id", async (req, res) => {
   const questionIdFromClient = req.params.id;
 
@@ -231,7 +224,6 @@ questionRouter.get("/:id/answers", async (req, res) => {
   });
 });
 
-//ผู้ใช้งานสามารถที่จะแก้ไขหัวข้อ หรือคำอธิบายของคำถามได้
 questionRouter.put("/:id", [validationUpdateQuestion], async (req, res) => {
   const questionIdFromClient = req.params.id;
   const updateQuestion = { ...req.body };
@@ -269,7 +261,6 @@ questionRouter.put("/:id", [validationUpdateQuestion], async (req, res) => {
   });
 });
 
-//ผู้ใช้งานสามารถที่จะลบคำถามได้
 questionRouter.delete("/:id", async (req, res) => {
   const questionIdFromClient = req.params.id;
   let result;

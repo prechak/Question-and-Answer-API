@@ -3,7 +3,6 @@ import connectionPool from "../utils/db.mjs";
 
 const answerRouter = Router();
 
-//ผู้ใช้งานสามารถกดปุ่มเห็นด้วย หรือไม่เห็นด้วยกับคำตอบได้ - Answer Upvote
 answerRouter.post("/:id/upvote", async (req, res) => {
   const answerId = req.params.id;
   let newVote = { ...req.body };
@@ -44,7 +43,6 @@ answerRouter.post("/:id/upvote", async (req, res) => {
   });
 });
 
-//ผู้ใช้งานสามารถกดปุ่มเห็นด้วย หรือไม่เห็นด้วยกับคำตอบได้ - Answer Downvote
 answerRouter.post("/:id/downvote", async (req, res) => {
   const answerId = req.params.id;
   let newVote = { ...req.body };
